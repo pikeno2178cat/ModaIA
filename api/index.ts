@@ -35,7 +35,7 @@ async function generateWithFallback(
   systemInstruction?: string,
   temperature: number = 0.7
 ): Promise<string> {
-  const models = ['gemini-flash-latest', 'gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+  const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
   let lastError: unknown = null;
 
   for (const model of models) {
