@@ -1,34 +1,87 @@
 import React, { useState } from 'react';
-import { Shirt, Scissors, Wand2, Check, Info } from 'lucide-react';
+import { Shirt, Scissors, Wand2, Check, Info, Layers, Sparkles } from 'lucide-react';
 import { SavedPrompt } from '../types';
 import { buildClothingIsolationPrompt, buildTryOnIsolatedABPrompt } from '../data/fashionPresets';
 import { PromptOutputCard } from './PromptOutputCard';
+import { SuggestionField } from './SuggestionField';
 
 interface TryOnTabProps {
   onSavePrompt?: (prompt: Omit<SavedPrompt, 'id' | 'createdAt'>) => void;
   savedPrompts?: SavedPrompt[];
 }
 
+const SUGESTOES_PECA_ISOLAMENTO = [
+  "Vestido midi envelope fluido em linho cru com decote V e amarração lateral",
+  "Conjunto alfaiataria com colete cropped e calça pantalona wide leg",
+  "Vestido canelado tubinho verde oliva com fenda lateral sutil",
+  "Top cropped estilo corset estruturado em alfaiataria com zíper traseiro",
+  "Camisa social oversized em tricoline 100% algodão branca",
+  "Conjunto fitness sem costura lilás com top e legging canelada",
+  "Biquíni cortininha canelado terracota com amarração fina e acabamento impecável",
+  "Jaqueta jeans cropped oversized com lavagem vintage clara e botões de metal"
+];
+
+const SUGESTOES_FUNDO_PACKSHOT = [
+  "Fundo branco puro estúdio com iluminação comercial difusa plana e sem sombras duras",
+  "Mesa de madeira rústica clara com luz natural suave de janela lateral",
+  "Fundo cinza neutro 18% para fidelidade máxima de cores de e-commerce",
+  "Superfície de mármore claro fosco com sombras suaves e elegantes",
+  "Fundo bege areia minimalista contemporâneo com drapeado suave",
+  "Tecido de linho cru como base natural orgânica com textura sutil"
+];
+
+const SUGESTOES_CAIMENTO_TRYON = [
+  "Caimento impecável ajustado à cintura sem deformar o tecido e com drapeado natural",
+  "Modelagem ampla e fluida com caimento solto e drapeado orgânico leve",
+  "Ajuste justo e compressivo realçando as curvas com elasticidade natural",
+  "Caimento estruturado de alfaiataria com ombros e gola definidos",
+  "Efeito oversized despojado com ombros caídos e barra solta na medida",
+  "Caimento esvoaçante e leve com movimento suave ao redor das pernas"
+];
+
+const SUGESTOES_PRESERVACAO_COSTURAS = [
+  "Preservar costuras originais, pespontos e botões idênticos à peça de referência",
+  "Manter tom de cor exato, estampas sem distorções e textura original do tecido",
+  "Preservar acabamento canelado ribana e elasticidade nas bordas",
+  "Fidelidade total aos aviamentos metálicos, zíperes e etiquetas aparentes",
+  "Preservar transparência sutil das mangas e tecido esvoaçante da saia",
+  "Manter fenda lateral na altura exata e decote fiel sem fechar ou abrir"
+];
+
 export const TryOnTab: React.FC<TryOnTabProps> = ({ onSavePrompt, savedPrompts = [] }) => {
   const [activeSubTab, setActiveSubTab] = useState<'passo1' | 'passo2'>('passo1');
 
-  const [promptPasso1, setPromptPasso1] = useState<string>(() => buildClothingIsolationPrompt());
-  const [promptPasso2, setPromptPasso2] = useState<string>(() => buildTryOnIsolatedABPrompt());
+  // Passo 1 States
+  const [pecaDesc, setPecaDesc] = useState<string>(SUGESTOES_PECA_ISOLAMENTO[0]);
+  const [fundoPackshot, setFundoPackshot] = useState<string>(SUGESTOES_FUNDO_PACKSHOT[0]);
+
+  // Passo 2 States
+  const [caimentoSilhueta, setCaimentoSilhueta] = useState<string>(SUGESTOES_CAIMENTO_TRYON[0]);
+  const [preservacaoCosturas, setPreservacaoCosturas] = useState<string>(SUGESTOES_PRESERVACAO_COSTURAS[0]);
+
+  const [promptPasso1, setPromptPasso1] = useState<string>(() =>
+    buildClothingIsolationPrompt(SUGESTOES_PECA_ISOLAMENTO[0], SUGESTOES_FUNDO_PACKSHOT[0])
+  );
+  const [promptPasso2, setPromptPasso2] = useState<string>(() =>
+    buildTryOnIsolatedABPrompt(SUGESTOES_CAIMENTO_TRYON[0], SUGESTOES_PRESERVACAO_COSTURAS[0])
+  );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const activePrompt = activeSubTab === 'passo1' ? promptPasso1 : promptPasso2;
 
-  const handleGerarPasso1 = () => {
-    const p = buildClothingIsolationPrompt();
+  const handleGerarPasso1 = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const p = buildClothingIsolationPrompt(pecaDesc, fundoPackshot);
     setPromptPasso1(p);
-    setSuccessMessage('Prompt de Isolamento gerado!');
+    setSuccessMessage('Prompt de Isolamento gerado com sucesso!');
     setTimeout(() => setSuccessMessage(null), 4000);
   };
 
-  const handleGerarPasso2 = () => {
-    const p = buildTryOnIsolatedABPrompt();
+  const handleGerarPasso2 = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const p = buildTryOnIsolatedABPrompt(caimentoSilhueta, preservacaoCosturas);
     setPromptPasso2(p);
-    setSuccessMessage('Prompt de Provador gerado!');
+    setSuccessMessage('Prompt de Provador Virtual gerado com sucesso!');
     setTimeout(() => setSuccessMessage(null), 4000);
   };
 
@@ -36,17 +89,17 @@ export const TryOnTab: React.FC<TryOnTabProps> = ({ onSavePrompt, savedPrompts =
 
   return (
     <div id="tryon-tab" className="space-y-6">
-      {/* Subheader & Caption matching Streamlit */}
+      {/* Subheader & Caption */}
       <div className="rounded-2xl p-5 bg-gradient-to-r from-zinc-900 via-zinc-900/95 to-zinc-900 border border-zinc-800">
         <h2 className="text-lg md:text-xl font-bold text-zinc-100 flex items-center gap-2">
           <span>👕 2. Provador Virtual & Isolamento</span>
         </h2>
         <p className="mt-1 text-xs md:text-sm text-zinc-400">
-          Isole a peça de roupas de terceiros e transfira para o seu modelo base.
+          Isole a peça de roupas de terceiros em flat-lay e transfira para o seu modelo base mantendo 100% de consistência. Digite o que quiser nos campos ou utilize as sugestões rápidas.
         </p>
       </div>
 
-      {/* Sub-tabs matching st.tabs(["Passo 1: Isolar Peça", "Passo 2: Vestir na Modelo (A + B)"]) */}
+      {/* Sub-tabs */}
       <div className="border-b border-zinc-800">
         <div className="flex space-x-2">
           <button
@@ -59,7 +112,7 @@ export const TryOnTab: React.FC<TryOnTabProps> = ({ onSavePrompt, savedPrompts =
             }`}
           >
             <Scissors className="w-4 h-4 text-amber-400" />
-            <span>Passo 1: Isolar Peça</span>
+            <span>Passo 1: Isolar Peça (Flat-Lay)</span>
           </button>
 
           <button
@@ -81,9 +134,14 @@ export const TryOnTab: React.FC<TryOnTabProps> = ({ onSavePrompt, savedPrompts =
         {/* Controls Column */}
         <div className="lg:col-span-5 space-y-5">
           {activeSubTab === 'passo1' ? (
-            <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl space-y-5">
+            <form
+              id="form_isolamento"
+              onSubmit={handleGerarPasso1}
+              className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl space-y-5"
+            >
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-zinc-100">
+                <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+                  <Scissors className="w-4 h-4 text-amber-400" />
                   Preparação da Peça (Packshot Flat-Lay)
                 </h3>
                 <p className="text-xs text-zinc-400 leading-relaxed">
@@ -91,12 +149,41 @@ export const TryOnTab: React.FC<TryOnTabProps> = ({ onSavePrompt, savedPrompts =
                 </p>
               </div>
 
-              {/* Button matching st.button("Gerar Prompt de Isolamento de Roupa", type="primary") */}
+              {/* Campo aberto: Descrição da Peça */}
+              <SuggestionField
+                id="input-peca-desc"
+                label="Descrição / Tipo da Peça de Roupa:"
+                icon={<Shirt className="w-3.5 h-3.5 text-amber-400" />}
+                value={pecaDesc}
+                onChange={setPecaDesc}
+                placeholder="Ex: Vestido midi envelope fluido em linho cru com decote V..."
+                suggestions={SUGESTOES_PECA_ISOLAMENTO}
+                multiline={true}
+                rows={2}
+                accentColor="amber"
+                helperText="Campo aberto: descreva o modelo, cor, corte ou selecione uma das opções abaixo."
+              />
+
+              {/* Campo aberto: Fundo e Superfície */}
+              <SuggestionField
+                id="input-fundo-packshot"
+                label="Superfície e Fundo do Flat-Lay:"
+                icon={<Layers className="w-3.5 h-3.5 text-amber-400" />}
+                value={fundoPackshot}
+                onChange={setFundoPackshot}
+                placeholder="Ex: Fundo branco puro estúdio com iluminação comercial difusa..."
+                suggestions={SUGESTOES_FUNDO_PACKSHOT}
+                multiline={true}
+                rows={2}
+                accentColor="amber"
+                helperText="Defina o tipo de fundo (estúdio branco, madeira, mármore) ou selecione uma sugestão."
+              />
+
+              {/* Submit Button */}
               <div>
                 <button
                   id="btn-gerar-isolamento"
-                  type="button"
-                  onClick={handleGerarPasso1}
+                  type="submit"
                   className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-semibold text-sm shadow-lg shadow-amber-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                 >
                   <Wand2 className="w-4 h-4" />
@@ -110,19 +197,24 @@ export const TryOnTab: React.FC<TryOnTabProps> = ({ onSavePrompt, savedPrompts =
                   <span>{successMessage}</span>
                 </div>
               )}
-            </div>
+            </form>
           ) : (
-            <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl space-y-5">
+            <form
+              id="form_transferencia"
+              onSubmit={handleGerarPasso2}
+              className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl space-y-5"
+            >
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-zinc-100">
-                  Transferência da Peça Isolada
+                <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+                  <Shirt className="w-4 h-4 text-amber-400" />
+                  Transferência da Peça Isolada (A + B)
                 </h3>
                 <p className="text-xs text-zinc-400 leading-relaxed">
                   Veste a peça do Passo 1 na sua modelo oficial, congelando rigorosamente o ambiente e a iluminação.
                 </p>
               </div>
 
-              {/* St.info box */}
+              {/* Info box */}
               <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-300 text-xs flex items-start gap-2.5 leading-relaxed">
                 <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                 <div>
@@ -131,12 +223,41 @@ export const TryOnTab: React.FC<TryOnTabProps> = ({ onSavePrompt, savedPrompts =
                 </div>
               </div>
 
-              {/* Button matching st.button("Gerar Prompt de Transferência (A + B)", type="primary") */}
+              {/* Campo aberto: Caimento & Silhueta */}
+              <SuggestionField
+                id="input-caimento-tryon"
+                label="Caimento & Silhueta Desejada no Corpo:"
+                icon={<Sparkles className="w-3.5 h-3.5 text-amber-400" />}
+                value={caimentoSilhueta}
+                onChange={setCaimentoSilhueta}
+                placeholder="Ex: Caimento impecável ajustado à cintura sem deformar o tecido..."
+                suggestions={SUGESTOES_CAIMENTO_TRYON}
+                multiline={true}
+                rows={2}
+                accentColor="amber"
+                helperText="Especifique se o caimento deve ser justo, oversized, fluido ou selecione uma opção."
+              />
+
+              {/* Campo aberto: Preservação de Costuras */}
+              <SuggestionField
+                id="input-preservacao-costuras"
+                label="Fidelidade de Costuras, Detalhes e Aviamentos:"
+                icon={<Layers className="w-3.5 h-3.5 text-amber-400" />}
+                value={preservacaoCosturas}
+                onChange={setPreservacaoCosturas}
+                placeholder="Ex: Preservar costuras originais, pespontos e botões idênticos..."
+                suggestions={SUGESTOES_PRESERVACAO_COSTURAS}
+                multiline={true}
+                rows={2}
+                accentColor="amber"
+                helperText="Detalhes críticos como costuras, fendas, botões e transparência."
+              />
+
+              {/* Submit Button */}
               <div>
                 <button
                   id="btn-gerar-transferencia"
-                  type="button"
-                  onClick={handleGerarPasso2}
+                  type="submit"
                   className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-semibold text-sm shadow-lg shadow-amber-950/50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                 >
                   <Wand2 className="w-4 h-4" />
@@ -150,7 +271,7 @@ export const TryOnTab: React.FC<TryOnTabProps> = ({ onSavePrompt, savedPrompts =
                   <span>{successMessage}</span>
                 </div>
               )}
-            </div>
+            </form>
           )}
 
           {/* Quick info card */}

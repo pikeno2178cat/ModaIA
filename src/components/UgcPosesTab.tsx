@@ -1,55 +1,103 @@
 import React, { useState } from 'react';
-import { Camera, Wand2, Check, Film, Lock, ShieldCheck } from 'lucide-react';
+import { Camera, Wand2, Check, Film, Lock, ShieldCheck, Sparkles, Smile } from 'lucide-react';
 import { SavedPrompt } from '../types';
 import { buildStrictPosePrompt } from '../data/fashionPresets';
 import { PromptOutputCard } from './PromptOutputCard';
+import { SuggestionField, SuggestionItem } from './SuggestionField';
 
 interface UgcPosesTabProps {
   onSavePrompt?: (prompt: Omit<SavedPrompt, 'id' | 'createdAt'>) => void;
   savedPrompts?: SavedPrompt[];
 }
 
-export const LISTA_POSES_UGC_REAIS: Record<string, string> = {
-  "1. Puxando a Barra Lateral (Elasticidade)": "One hand gently pulling the side hem of the garment outward to show stretch, fabric weight, and how the material drapes naturally over the hips/torso.",
-  "2. Toque no Tecido do Peito/Ombro (Textura)": "One hand delicately pinching the fabric on the chest or shoulder area to highlight the material texture, knit pattern, and quality of the garment.",
-  "3. Ajustando a Manga ou Punho": "Mid-action pose with one hand adjusting the cuff or sleeve length, showing the sleeve fit and arm mobility.",
-  "4. Mãos nos Bolsos Frontais": "Both hands casually tucked into the front pockets, spreading the fabric slightly to emphasize the waistline, front cut, and relaxed fit.",
-  "5. Giro de 45 Graus de Lado": "Standing at a slight 45-degree angle, turning the upper body toward the mirror to clearly display the side silhouette, length, and back fit.",
-  "6. Puxando Levemente a Gola": "One hand gently pulling the collar or neckline downward/forward to show collarbone fit, neck ribbing, and structural structure.",
-  "7. Mão Espalmada na Cintura": "One hand pressed flat against the waistline or belt area, defining the waist shape and showing how the garment tapers.",
-  "8. Conferindo o Comprimento (Inclinando à frente)": "Slight forward lean of the upper body, checking the length, hemline fall, and transparency or stretch of the fabric in the mirror.",
-  "9. Braço Cruzado com Mão no Cotovelo": "One arm crossed across the torso supporting the opposite elbow, naturally pulling the front fabric taut to display body fit.",
-  "10. Alisando a Região Frontal": "Both hands smoothing down the front fabric from chest to waist to eliminate creases and showcase the clean fit and overall silhouette of the piece.",
-  "11. Pose Dinâmica de Transição de Passo": "One foot stepping forward as if walking past the mirror, capturing realistic fabric movement, folds, and how the lower garment flows.",
-  "12. Mão Passando pelo Cabelo (Cava/Lateral)": "Lifting one arm up with hand touching the hair, raising the elbow to showcase the armhole fit, side seams, and torso hugging shape.",
-  "13. Puxando a Parte Traseira (Costas)": "One hand reaching back to lightly tug the back fabric, demonstrating the stretch, drape, and shoulder comfort across the back.",
-  "14. Encostado(a) de Lado no Batente/Parede": "Leaning sideways against the room structure, letting the clothing relax naturally against gravity to display its loose or fitted structure.",
-  "15. Segurando a Lateral da Saia/Calça": "Fingers pinching the sides of the trousers or skirt to slightly pull it outward, demonstrating fabric flare, width, and fluidity.",
-  "16. Olhar Direto para a Peça no Espelho": "Head tilted slightly downward, gazing directly at the clothing reflection in the mirror to inspect print placement or texture details.",
-  "17. Mão no Bolso Traseiro / Lateral": "One hand tucked loosely into a back or side pocket, shifting weight to one hip to display how the pants/shorts hug the body curves.",
-  "18. Ajustando o Cinto ou Cós": "One hand interacting with the waistband or belt loops, drawing natural attention to the waist fit and product hardware.",
-  "19. Braços Soltos ao Lado do Corpo": "Standing straight with arms relaxed naturally at the sides, displaying the true, unaltered vertical drop and length of the outfit.",
-  "20. Sorriso de Aprovação (Review UGC)": "Subtle expression of approval looking at the mirror reflection, casual thumbs-up near the waist to simulate an honest review video frame."
-};
+export const LISTA_POSES_UGC_SUGESTOES: SuggestionItem[] = [
+  {
+    label: "1. Puxando a Barra Lateral (Elasticidade)",
+    value: "One hand gently pulling the side hem of the garment outward to show stretch, fabric weight, and how the material drapes naturally over the hips/torso."
+  },
+  {
+    label: "2. Toque no Tecido do Peito/Ombro (Textura)",
+    value: "One hand delicately pinching the fabric on the chest or shoulder area to highlight the material texture, knit pattern, and quality of the garment."
+  },
+  {
+    label: "3. Ajustando a Manga ou Punho",
+    value: "Mid-action pose with one hand adjusting the cuff or sleeve length, showing the sleeve fit and arm mobility."
+  },
+  {
+    label: "4. Mãos nos Bolsos Frontais",
+    value: "Both hands casually tucked into the front pockets, spreading the fabric slightly to emphasize the waistline, front cut, and relaxed fit."
+  },
+  {
+    label: "5. Giro de 45 Graus de Lado",
+    value: "Standing at a slight 45-degree angle, turning the upper body toward the mirror to clearly display the side silhouette, length, and back fit."
+  },
+  {
+    label: "6. Puxando Levemente a Gola",
+    value: "One hand gently pulling the collar or neckline downward/forward to show collarbone fit, neck ribbing, and structural structure."
+  },
+  {
+    label: "7. Mão Espalmada na Cintura",
+    value: "One hand pressed flat against the waistline or belt area, defining the waist shape and showing how the garment tapers."
+  },
+  {
+    label: "8. Conferindo o Comprimento (Inclinando à frente)",
+    value: "Slight forward lean of the upper body, checking the length, hemline fall, and transparency or stretch of the fabric in the mirror."
+  },
+  {
+    label: "9. Braço Cruzado com Mão no Cotovelo",
+    value: "One arm crossed across the torso supporting the opposite elbow, naturally pulling the front fabric taut to display body fit."
+  },
+  {
+    label: "10. Alisando a Região Frontal",
+    value: "Both hands smoothing down the front fabric from chest to waist to eliminate creases and showcase the clean fit and overall silhouette of the piece."
+  },
+  {
+    label: "11. Transição de Passo (Movimento)",
+    value: "One foot stepping forward as if walking past the mirror, capturing realistic fabric movement, folds, and how the lower garment flows."
+  },
+  {
+    label: "12. Mão no Cabelo com Cotovelo Elevado",
+    value: "Lifting one arm up with hand touching the hair, raising the elbow to showcase the armhole fit, side seams, and torso hugging shape."
+  }
+];
+
+const SUGESTOES_FOCO_PRODUTO = [
+  "Elasticidade e retorno da malha ao puxar a lateral da peça sem deformar",
+  "Textura encorpada do tecido e trama visível sob a iluminação do espelho",
+  "Caimento impecável na cintura sem marcar e sem sobras de tecido",
+  "Acabamento da gola, costuras duplas reforçadas e corte do decote",
+  "Movimento fluido da barra e drapeado natural orgânico ao movimentar",
+  "Comprimento exato nas pernas e modelagem traseira valorizando a silhueta",
+  "Bolsos funcionais e qualidade dos botões/zíper frontal",
+  "Transparência zero e densidade da fibra com toque macio aveludado"
+];
+
+const SUGESTOES_EXPRESSAO_UGC = [
+  "Sorriso espontâneo de aprovação com expressão genuína de review positivo",
+  "Expressão confiante e descontraída de provador de boutique para TikTok",
+  "Olhar focado conferindo o caimento no espelho com leve sorriso natural",
+  "Atitude casual e autêntica de provador sem pose engessada de estúdio",
+  "Expressão amigável e calorosa falando diretamente com o público em vídeo",
+  "Sorriso sutil e postura empoderada demonstrando extrema segurança com o look"
+];
 
 export const UgcPosesTab: React.FC<UgcPosesTabProps> = ({ onSavePrompt, savedPrompts = [] }) => {
-  const poseKeys = Object.keys(LISTA_POSES_UGC_REAIS);
-  const [poseSelecionada, setPoseSelecionada] = useState<string>(poseKeys[0]);
-
-  const descricaoPose = LISTA_POSES_UGC_REAIS[poseSelecionada];
+  const [poseDescricao, setPoseDescricao] = useState<string>(LISTA_POSES_UGC_SUGESTOES[0].value);
+  const [focoDemonstracao, setFocoDemonstracao] = useState<string>(SUGESTOES_FOCO_PRODUTO[0]);
+  const [expressaoUgc, setExpressaoUgc] = useState<string>(SUGESTOES_EXPRESSAO_UGC[0]);
 
   const [generatedPrompt, setGeneratedPrompt] = useState<string>(() =>
-    buildStrictPosePrompt(LISTA_POSES_UGC_REAIS[poseKeys[0]])
+    buildStrictPosePrompt(LISTA_POSES_UGC_SUGESTOES[0].value, SUGESTOES_FOCO_PRODUTO[0], SUGESTOES_EXPRESSAO_UGC[0])
   );
   const [hasGenerated, setHasGenerated] = useState<boolean>(true);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleGenerate = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const prompt = buildStrictPosePrompt(descricaoPose);
+    const prompt = buildStrictPosePrompt(poseDescricao, focoDemonstracao, expressaoUgc);
     setGeneratedPrompt(prompt);
     setHasGenerated(true);
-    setSuccessMessage('Prompt de Pose gerado!');
+    setSuccessMessage('Prompt de Pose UGC gerado com sucesso!');
     setTimeout(() => setSuccessMessage(null), 4000);
   };
 
@@ -57,13 +105,13 @@ export const UgcPosesTab: React.FC<UgcPosesTabProps> = ({ onSavePrompt, savedPro
 
   return (
     <div id="ugc-poses-tab" className="space-y-6">
-      {/* Subheader & Caption matching Streamlit */}
+      {/* Subheader & Caption */}
       <div className="rounded-2xl p-5 bg-gradient-to-r from-zinc-900 via-zinc-900/95 to-zinc-900 border border-zinc-800">
         <h2 className="text-lg md:text-xl font-bold text-zinc-100 flex items-center gap-2">
           <span>📸 4. Poses UGC & Caimento</span>
         </h2>
         <p className="mt-1 text-xs md:text-sm text-zinc-400">
-          Demonstre caimento, elasticidade e toque do tecido com poses realistas.
+          Demonstre caimento, elasticidade e toque do tecido com poses realistas. Você é livre para escrever a ação física que desejar ou usar as sugestões abaixo.
         </p>
       </div>
 
@@ -75,42 +123,50 @@ export const UgcPosesTab: React.FC<UgcPosesTabProps> = ({ onSavePrompt, savedPro
             onSubmit={handleGenerate}
             className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl space-y-5"
           >
-            {/* Selectbox matching st.selectbox("Selecione a Ação de Caimento:", list(lista_poses_ugc_reais.keys())) */}
-            <div className="space-y-1.5">
-              <label htmlFor="select-pose-ugc" className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
-                <Film className="w-3.5 h-3.5 text-indigo-400" />
-                Selecione a Ação de Caimento:
-              </label>
-              <select
-                id="select-pose-ugc"
-                value={poseSelecionada}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setPoseSelecionada(val);
-                  setGeneratedPrompt(buildStrictPosePrompt(LISTA_POSES_UGC_REAIS[val]));
-                }}
-                className="w-full px-3 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs md:text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-              >
-                {poseKeys.map((key) => (
-                  <option key={key} value={key}>
-                    {key}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Campo aberto: Ação Física da Pose */}
+            <SuggestionField
+              id="input-pose-ugc"
+              label="Ação Física da Pose / Movimento com a Roupa:"
+              icon={<Film className="w-3.5 h-3.5 text-indigo-400" />}
+              value={poseDescricao}
+              onChange={setPoseDescricao}
+              placeholder="Ex: One hand gently pulling the side hem of the garment outward..."
+              suggestions={LISTA_POSES_UGC_SUGESTOES}
+              multiline={true}
+              rows={3}
+              accentColor="indigo"
+              helperText="Escreva livremente a pose exata que a modelo fará com o tecido ou clique numa das 12 sugestões abaixo."
+            />
 
-            {/* Instruction description box */}
-            <div className="space-y-1.5">
-              <span className="text-[11px] font-semibold text-zinc-300 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-                Ação Física da Pose:
-              </span>
-              <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 text-xs leading-relaxed font-mono">
-                {descricaoPose}
-              </div>
-            </div>
+            {/* Campo aberto: Foco de Demonstração */}
+            <SuggestionField
+              id="input-foco-produto"
+              label="Foco da Demonstração do Produto (Detalhe a Enfatizar):"
+              icon={<Sparkles className="w-3.5 h-3.5 text-indigo-400" />}
+              value={focoDemonstracao}
+              onChange={setFocoDemonstracao}
+              placeholder="Ex: Elasticidade e retorno da malha ao puxar a lateral da peça..."
+              suggestions={SUGESTOES_FOCO_PRODUTO}
+              multiline={true}
+              rows={2}
+              accentColor="indigo"
+              helperText="Qual aspecto da peça deve saltar aos olhos (elasticidade, textura, gola, caimento na cintura)."
+            />
 
-            {/* Button matching st.button("Gerar Prompt de Pose UGC", type="primary") */}
+            {/* Campo aberto: Expressão Facial & Vibe */}
+            <SuggestionField
+              id="input-expressao-ugc"
+              label="Expressão Facial & Vibe UGC da Modelo:"
+              icon={<Smile className="w-3.5 h-3.5 text-indigo-400" />}
+              value={expressaoUgc}
+              onChange={setExpressaoUgc}
+              placeholder="Ex: Sorriso espontâneo de aprovação com expressão genuína..."
+              suggestions={SUGESTOES_EXPRESSAO_UGC}
+              accentColor="indigo"
+              helperText="Expressão humana e autêntica de provador sem parecer forçada."
+            />
+
+            {/* Submit Button */}
             <div>
               <button
                 id="btn-gerar-pose-ugc"
@@ -122,7 +178,7 @@ export const UgcPosesTab: React.FC<UgcPosesTabProps> = ({ onSavePrompt, savedPro
               </button>
             </div>
 
-            {/* Success Alert matching Streamlit */}
+            {/* Success Alert */}
             {successMessage && (
               <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 transition-all">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -138,10 +194,9 @@ export const UgcPosesTab: React.FC<UgcPosesTabProps> = ({ onSavePrompt, savedPro
               Preservação Rigorosa de Identidade & Ambiente:
             </div>
             <ul className="space-y-1 list-disc list-inside text-zinc-400">
-              <li>Rosto, cabelo e biotipo 100% inalterados.</li>
-              <li>Mesma peça de roupa, cor, estampa e textura da referência.</li>
-              <li>Mesmo quarto, espelho e iluminação de fundo.</li>
-              <li>Apenas a postura física varia para demonstrar elasticidade e drapeamento.</li>
+              <li>O rosto, corpo e cabelo são travados rigorosamente na modelo base.</li>
+              <li>O quarto/ambiente e espelho permanecem 100% idênticos.</li>
+              <li>Apenas a postura física interage de forma realista com a roupa.</li>
             </ul>
           </div>
         </div>
@@ -150,25 +205,25 @@ export const UgcPosesTab: React.FC<UgcPosesTabProps> = ({ onSavePrompt, savedPro
         <div className="lg:col-span-7 space-y-4">
           {hasGenerated && (
             <PromptOutputCard
-              id="output-pose-estrito"
-              title={`Prompt de Pose UGC: ${poseSelecionada}`}
-              badge="Caimento & Vestibilidade"
+              id="output-pose-ugc"
+              title="Prompt de Pose UGC de Caimento Realista"
+              badge="Controle Físico 9:16"
               prompt={generatedPrompt}
               onSave={() => {
                 if (onSavePrompt) {
                   onSavePrompt({
-                    title: `Pose UGC: ${poseSelecionada}`,
+                    title: 'Pose UGC: Caimento e Elasticidade',
                     type: 'pose',
                     prompt: generatedPrompt,
-                    tags: ['Pose UGC', 'Caimento', 'Bloqueio Estrito'],
+                    tags: ['Pose UGC', 'Elasticidade', 'Caimento Real'],
                   });
                 }
               }}
               isSaved={isCurrentSaved}
               tips={[
-                'No Midjourney: use como Image-to-Image com a foto original da modelo.',
-                'No Fooocus/Flux: use prompt com a imagem original em FaceSwap/ControlNet.',
-                'Permite criar carrosséis com o mesmo produto em vários ângulos realistas.',
+                'Use com ControlNet OpenPose ou Inpainting para guiar a mão segurando a roupa.',
+                'Perfeito para gerar carrosséis de produtos no Instagram com diferentes ângulos.',
+                'Destaque costuras, forro e elasticidade para diminuir devoluções no e-commerce.',
               ]}
             />
           )}

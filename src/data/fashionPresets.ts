@@ -283,9 +283,15 @@ An extremely realistic 9:16 image of the exact same person from Image A, inside 
 /**
  * Builds the Clothing Isolation Prompt (Flat-lay / E-commerce Shot - Passo 1)
  */
-export function buildClothingIsolationPrompt(): string {
-  return `Use the provided reference image of the person wearing the outfit only to identify and reconstruct the clothing set accurately.
+export function buildClothingIsolationPrompt(
+  pecaDesc?: string,
+  fundoPackshot?: string
+): string {
+  const extraPeca = pecaDesc && pecaDesc.trim() ? `\nTARGET GARMENT DETAILS TO RECONSTRUCT:\n[${pecaDesc.trim()}]\n` : '';
+  const extraFundo = fundoPackshot && fundoPackshot.trim() ? `\nSURFACE & LIGHTING SETUP:\n[${fundoPackshot.trim()}]\n` : '';
 
+  return `Use the provided reference image of the person wearing the outfit only to identify and reconstruct the clothing set accurately.
+${extraPeca}${extraFundo}
 Generate a highly realistic product-only image of the exact outfit shown in the reference, with NO person wearing it.
 The final image must show only the outfit pieces separated and clearly visible, isolated from the model. Recreate the clothing faithfully based on the reference image, preserving the exact design, color, fabric appearance, shape, proportions, cut, seams, neckline, straps, waistband, stitching, and all visible construction details.
 Show the full outfit as a clean flat-lay product presentation on a plain light background, preferably white or very light neutral. Arrange the pieces neatly so the viewer can clearly see the entire set. If the outfit includes two pieces, show both pieces fully visible and separated, but positioned close together as a matching set.
@@ -303,11 +309,17 @@ Focus on product fidelity and realism. The result should clearly present the clo
 /**
  * Builds the Virtual Try-On Prompt with Isolated Clothing (Passo 2: Imagem A + B)
  */
-export function buildTryOnIsolatedABPrompt(): string {
+export function buildTryOnIsolatedABPrompt(
+  caimentoSilhueta?: string,
+  preservacaoCosturas?: string
+): string {
+  const extraFit = caimentoSilhueta && caimentoSilhueta.trim() ? `\nDESIRED BODY FIT & DRAPING:\n[${caimentoSilhueta.trim()}]\n` : '';
+  const extraSeams = preservacaoCosturas && preservacaoCosturas.trim() ? `\nSEAM & PRODUCT FIDELITY REQUIREMENTS:\n[${preservacaoCosturas.trim()}]\n` : '';
+
   return `Use Image A as the main identity and environment reference, and Image B exclusively as the clothing reference.
 Image A: A PESSOA E O CENÁRIO — identidade a preservar: rosto, cabelo, tipo de corpo, tom de pele, proporções, além de todo o ambiente de fundo, iluminação, espelho e objetos que devem permanecer 100% idênticos.
 Image B: A ROUPA — apenas a peça isolada é aproveitada. 
-
+${extraFit}${extraSeams}
 Image A is the master reference for both the person AND their environment. Keep their face, hair, body type, skin tone, proportions, and overall appearance strictly identical to Image A. 
 CRITICAL ENVIRONMENT LOCK: Keep the exact same background environment, room geometry, walls, furniture, props, mirror position, and lighting from Image A. Do not change, modify, or shift the background in any way. Only the clothing must be replaced.
 
@@ -331,9 +343,17 @@ An extremely realistic 9:16 image of the exact same person from Image A, inside 
 /**
  * Builds the Scenario Change Prompt (Image A + Image B) matching Module 3.
  */
-export function buildScenarioABPrompt(): string {
-  return `Use the two provided images as references. The first image (Image A) serves as the base and must define the final composition, camera angle, perspective, environment, lighting, framing, and background. The second image (Image B) provides the reference for the identity, facial features, hair, body, and appearance of the person who is to be placed into the scene.
+export function buildScenarioABPrompt(
+  novoAmbiente?: string,
+  iluminacaoAtmosfera?: string,
+  interacaoModelo?: string
+): string {
+  const extraAmbiente = novoAmbiente && novoAmbiente.trim() ? `\nTARGET ENVIRONMENT (IMAGE A):\n[${novoAmbiente.trim()}]\n` : '';
+  const extraLuz = iluminacaoAtmosfera && iluminacaoAtmosfera.trim() ? `\nLIGHTING & ATMOSPHERE:\n[${iluminacaoAtmosfera.trim()}]\n` : '';
+  const extraInteracao = interacaoModelo && interacaoModelo.trim() ? `\nMODEL INTERACTION & POSE:\n[${interacaoModelo.trim()}]\n` : '';
 
+  return `Use the two provided images as references. The first image (Image A) serves as the base and must define the final composition, camera angle, perspective, environment, lighting, framing, and background. The second image (Image B) provides the reference for the identity, facial features, hair, body, and appearance of the person who is to be placed into the scene.
+${extraAmbiente}${extraLuz}${extraInteracao}
 Completely place the person from the second image (Image B) into the environment of the first image (Image A), while maintaining the original environment, lighting, and composition of the first image precisely. 
 - Preserve 100% of the identity, face, hair, body type, and appearance from Image B. Do not alter her identity.
 - Preserve 100% of the environment, background, props, lighting, and camera perspective from Image A.
@@ -349,11 +369,18 @@ An ultra-realistic photo showing the exact person from Image B naturally integra
 /**
  * Builds the Strict UGC Clothing Fit & Pose Prompt matching Module 4.
  */
-export function buildStrictPosePrompt(poseDescription: string): string {
+export function buildStrictPosePrompt(
+  poseDescription: string,
+  focoDemonstracao?: string,
+  expressaoUgc?: string
+): string {
+  const extraFoco = focoDemonstracao && focoDemonstracao.trim() ? `\nPRODUCT DEMONSTRATION FOCUS:\n[${focoDemonstracao.trim()}]\n` : '';
+  const extraExpressao = expressaoUgc && expressaoUgc.trim() ? `\nFACIAL EXPRESSION & VIBE:\n[${expressaoUgc.trim()}]\n` : '';
+
   return `STRICT UGC CLOTHING FIT & POSE PROMPT (Image-to-Image / Reference Preservation Workflow):
 Using the provided reference image, keep the person's exact face, identity, hair style/color, exact clothing item, and exact background environment 100% identical and unchanged. 
 ONLY change their body posture to execute the following realistic UGC try-on action: ${poseDescription}.
-
+${extraFoco}${extraExpressao}
 CRITICAL FIT & LOCK RULES:
 - DO NOT change the clothing piece, color, print, fabric, or texture from the reference. The garment must remain exactly the same.
 - DO NOT change her/his face, facial features, hair, or identity.
@@ -537,10 +564,21 @@ Style: Shot on smartphone, vertical 9:16 video look, natural lighting, authentic
 /**
  * Builds the Master 8-Second UGC Fashion Video Prompt (TikTok Shop / Reels Showcase)
  */
-export function buildMasterVideoUgcPrompt(): string {
+export function buildMasterVideoUgcPrompt(
+  lookRoupa?: string,
+  acaoMovimento?: string,
+  hookTexto?: string,
+  ferramentaIa?: string
+): string {
+  const extraLook = lookRoupa && lookRoupa.trim() ? `\nFEATURED PRODUCT OUTFIT:\n[${lookRoupa.trim()}]\n` : '';
+  const extraAcao = acaoMovimento && acaoMovimento.trim() ? `\nKEY 8-SECOND SHOWCASE ACTION:\n[${acaoMovimento.trim()}]\n` : '';
+  const extraHook = hookTexto && hookTexto.trim() ? `\nCONVERTING UGC HOOK / ANGLE:\n[${hookTexto.trim()}]\n` : '';
+  const extraEngine = ferramentaIa && ferramentaIa.trim() ? `\nOPTIMIZED AI VIDEO ENGINE:\n[${ferramentaIa.trim()}]\n` : '';
+
   return `Create a highly realistic 8-second vertical 9:16 UGC-style fashion video using ONLY the provided reference image.
 REFERENCE IMAGE: Use the provided image as the exact visual reference for the model AND the clothing they are wearing.
 The clothing worn by the model in the reference image IS THE PRODUCT.
+${extraLook}${extraAcao}${extraHook}${extraEngine}
 Preserve the exact design, color, fabric appearance, texture, pattern, stitching, seams, neckline or collar, sleeves, straps if present, fit, proportions, length, shape, and construction of the clothing. Do not redesign, recolor, replace, simplify, add, or remove any clothing details.
 The model's identity must remain completely consistent with the reference image. Preserve facial features, skin tone, hairstyle, body proportions, apparent age, and overall appearance.
 
