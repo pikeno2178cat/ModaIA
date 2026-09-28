@@ -1,0 +1,6 @@
+{
+  "name": "ModaIA - Fábrica de Prompts",
+  "description": "Gerencie casting, isolamento e provador de roupas, troca de cenários, poses de caimento e vídeos UGC com segurança total.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
