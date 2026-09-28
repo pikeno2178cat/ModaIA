@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, Download, Bookmark, BookmarkCheck, Sparkles, Eye, Code, ExternalLink } from 'lucide-react';
+import { Copy, Check, Download, Bookmark, BookmarkCheck, Sparkles, Eye, Code, ExternalLink, Wand2, Loader2, Undo2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface PromptOutputCardProps {
@@ -23,20 +23,26 @@ export const PromptOutputCard: React.FC<PromptOutputCardProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [showFull, setShowFull] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState<string | null>(null);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
-  const wordCount = prompt.trim().split(/\s+/).filter(Boolean).length;
-  const charCount = prompt.length;
+  // Active prompt display (original or AI-enhanced)
+  const displayPrompt = customPrompt !== null ? customPrompt : prompt;
+
+  const wordCount = displayPrompt.trim().split(/\s+/).filter(Boolean).length;
+  const charCount = displayPrompt.length;
   const estimatedTokens = Math.round(charCount / 4);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(prompt);
+      await navigator.clipboard.writeText(displayPrompt);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
       // Fallback
       const textArea = document.createElement('textarea');
-      textArea.value = prompt;
+      textArea.value = displayPrompt;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');
@@ -48,12 +54,54 @@ export const PromptOutputCard: React.FC<PromptOutputCardProps> = ({
 
   const handleDownload = () => {
     const element = document.createElement('a');
-    const file = new Blob([prompt], { type: 'text/plain;charset=utf-8' });
+    const file = new Blob([displayPrompt], { type: 'text/plain;charset=utf-8' });
     element.href = URL.createObjectURL(file);
     element.download = `${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_prompt.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+  };
+
+  // Securely request backend enhancement using Gemini API (server-side only)
+  const handleEnhanceWithGemini = async () => {
+    if (isEnhancing) return;
+    setIsEnhancing(true);
+    setAiError(null);
+
+    try {
+      const response = await fetch('/api/gemini/enhance-prompt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: displayPrompt,
+          instruction: 'Enriqueça com terminologias de iluminação de estúdio fotográfico, fidelidade têxtil, e parâmetros de máxima resolução.',
+          targetTool: 'Google Flow / Midjourney v6',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao comunicar com o servidor');
+      }
+
+      if (data.enhancedPrompt) {
+        setCustomPrompt(data.enhancedPrompt);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao aprimorar prompt com IA';
+      setAiError(msg);
+      setTimeout(() => setAiError(null), 5000);
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleRevert = () => {
+    setCustomPrompt(null);
+    setAiError(null);
   };
 
   return (
@@ -124,6 +172,42 @@ export const PromptOutputCard: React.FC<PromptOutputCardProps> = ({
             )}
           </button>
 
+          {/* Gemini AI Enhance Button */}
+          {customPrompt !== null ? (
+            <button
+              id={`${id}-btn-revert-gemini`}
+              type="button"
+              onClick={handleRevert}
+              title="Restaurar versão original do prompt"
+              className="p-2 rounded-lg text-xs font-medium bg-zinc-800/80 hover:bg-zinc-800 text-amber-300 border border-amber-500/30 transition-colors flex items-center gap-1.5"
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Original</span>
+            </button>
+          ) : (
+            <button
+              id={`${id}-btn-enhance-gemini`}
+              type="button"
+              onClick={handleEnhanceWithGemini}
+              disabled={isEnhancing}
+              title="Refinar e expandir este prompt com Google Gemini no servidor"
+              className="px-3 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-sm shadow-purple-950/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-purple-400/25"
+            >
+              {isEnhancing ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-200" />
+                  <span>Refinando...</span>
+                </>
+              ) : (
+                <>
+                  <Wand2 className="w-3.5 h-3.5 text-purple-200" />
+                  <span className="hidden sm:inline">Refinar com Gemini</span>
+                  <span className="sm:hidden">Gemini</span>
+                </>
+              )}
+            </button>
+          )}
+
           {/* Button to go directly to Google Flow */}
           <a
             id={`${id}-btn-google-flow`}
@@ -139,6 +223,36 @@ export const PromptOutputCard: React.FC<PromptOutputCardProps> = ({
           </a>
         </div>
       </div>
+
+      {/* AI Notification Banners */}
+      {aiError && (
+        <div className="px-5 py-2.5 bg-amber-500/10 border-b border-amber-500/20 text-amber-300 text-xs flex items-center justify-between gap-2">
+          <span>⚠️ {aiError}</span>
+          <button
+            type="button"
+            onClick={() => setAiError(null)}
+            className="text-amber-400 hover:text-amber-200 text-[11px] underline"
+          >
+            Fechar
+          </button>
+        </div>
+      )}
+
+      {customPrompt !== null && (
+        <div className="px-5 py-2 bg-purple-500/10 border-b border-purple-500/20 text-purple-300 text-xs flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            Prompt otimizado pelo Google Gemini (processado com segurança no servidor).
+          </span>
+          <button
+            type="button"
+            onClick={handleRevert}
+            className="text-purple-300 hover:text-purple-100 text-[11px] font-semibold underline"
+          >
+            Voltar ao original
+          </button>
+        </div>
+      )}
 
       {/* Metric ribbon */}
       <div className="px-5 py-2 bg-zinc-950/60 border-b border-zinc-800/60 flex items-center justify-between text-xs text-zinc-400">
@@ -182,7 +296,7 @@ export const PromptOutputCard: React.FC<PromptOutputCardProps> = ({
             showFull ? 'max-h-none' : 'max-h-[380px] overflow-y-auto'
           }`}
         >
-          <code>{prompt}</code>
+          <code>{displayPrompt}</code>
         </pre>
 
         {copied && (
